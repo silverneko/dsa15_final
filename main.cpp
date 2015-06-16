@@ -25,6 +25,16 @@ const int PWD_SIZE = 128;
 
 /* Global Functions */
 
+void account_login    ( char *id, char *pwd );
+void create_account   ( char *id, char *pwd );
+void delete_account   ( char *id, char *pwd );
+void merge_account    ( char *id1, char *pwd1, char *id2, char *pwd2 );
+void account_deposit  ( long long num );
+void account_withdraw ( long long num );
+void account_transfer ( char *id, long long num);
+void find_account     ( char *id );
+void search_account   ( char *id );
+
 /* Main */
 
 int main () {
@@ -44,6 +54,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s, [password] = %s\n", "\"login\"", id, pwd);
             #endif
+            account_login(id, pwd);
 
         } else if ( buf[0] == 'c' ) {
             /* create : create a specific account with password
@@ -53,6 +64,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s, [password] = %s\n", "\"create\"", id, pwd);
             #endif
+            create_account(id, pwd);
 
         } else if ( buf[0] == 'd' && buf[2] == 'l' ) { /* command conflicts with deposit */
             /* delete : delete a specific account with password
@@ -62,6 +74,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s, [password] = %s\n", "\"delete\"", id, pwd);
             #endif
+            delete_account(id, pwd);
 
         } else if ( buf[0] == 'm' ) {
             /* merge : merge the second account into the first one; after merging, the second one is deleted
@@ -71,6 +84,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID1] = %s, [password1] = %s, [ID2] = %s, [password2] = %s\n", "\"merge\"", id1, pwd1, id2, pwd2);
             #endif
+            merge_account(id1, pwd1, id2, pwd2);
 
         } else if ( buf[0] == 'd' && buf[2] == 'p' ) { /* command conflicts with delete */
             /* deposit : deposit money into [last-successful-login-ID]
@@ -80,6 +94,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [num] = %lld\n", "\"deposit\"", num);
             #endif
+            account_deposit(num);
 
         } else if ( buf[0] == 'w' ) {
             /* withdraw : withdraw money from [last-successful-login-ID]
@@ -89,6 +104,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [num] = %lld\n", "\"withdraw\"", num);
             #endif
+            account_withdraw(num);
 
         } else if ( buf[0] == 't' ) {
             /* transfer : transfer money from [last-successful-login-ID] to a specific account]
@@ -98,6 +114,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s, [num] = %lld\n", "\"transfer\"", id, num);
             #endif
+            account_transfer(id, num);
 
         } else if ( buf[0] == 'f' ) {
             /* find : find all existing account IDs that matches [wildcard ID] but is different from [last-successful-login-ID]
@@ -107,6 +124,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [wildcard_ID] = %s\n", "\"find\"", id);
             #endif
+            find_account(id);
 
         } else if ( buf[0] == 's' ) {
             /* search : search all transfer history of [last-successful-login-ID] from/to a specific account
@@ -116,6 +134,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s\n", "\"search\"", id);
             #endif
+            search_account(id);
 
         } 
     }
@@ -127,4 +146,38 @@ int main () {
 
 /* Global Functions */
 
+void account_login ( char *id, char *pwd ) {
 
+}
+
+void create_account ( char *id, char *pwd ) {
+
+}
+
+void delete_account ( char *id, char *pwd ) {
+
+}
+
+void merge_account ( char *id1, char *pwd1, char *id2, char *pwd2 ) {
+
+}
+
+void account_deposit ( long long num ) {
+
+}
+
+void account_withdraw ( long long num ) {
+
+}
+
+void account_transfer ( char *id, long long num){
+
+}
+
+void find_account ( char *id ) {
+
+}
+
+void search_account ( char *id ) {
+
+}
