@@ -12,7 +12,8 @@
 
 using namespace std;
 
-#define test
+#define test /* remove this line before uploading */
+/* remember to add #ifdef test, #endif when adding test code */
 
 /* Constant */
 const long long MAX_MONEY = 10000000000LL; /* remember the max money in an account is in long long */
