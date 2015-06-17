@@ -55,10 +55,10 @@ private:
     inline bool islogin();
 public:
     Account(){now_user = make_pair(string(),string());}
-    bool add ( const string &id, const string &pwd );
+    int add ( const string &id, const string &pwd );
     int remove ( const string &id, const string &pwd );
     void deposit ( long long num );
-    bool withdraw ( long long num );
+    int withdraw ( long long num );
 };
 
 /* Global Functions */
@@ -190,7 +190,7 @@ inline bool Account :: islogin () {
     return now_user.first.length() > 0;
 }
 
-bool Account :: add ( const string &id, const string &pwd ) {
+int Account :: add ( const string &id, const string &pwd ) {
     if( exist(id) ) {
         /* name used */
         return FAIL;
@@ -224,14 +224,14 @@ void Account :: deposit ( long long num ) {
     acct[now_user] += num;
 }
 
-bool Account :: withdraw ( long long num ) {
+int Account :: withdraw ( long long num ) {
     if( !islogin() ){
         /* not login yet */
         return FAIL;
     }
     acct_itr itr = acct.find(now_user);
     if(itr->second < num){
-        return FAIL;
+        return NO_ENOUGH_MONEY;
     }
     itr->second -= num;
     return SUCCESS;
