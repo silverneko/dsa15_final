@@ -9,11 +9,24 @@
 #include <algorithm>
 #include <iostream>
 #include <regex>
+#include <functional>
+#include <unordered_map> /* we can use either map or unordered_map */
+#include <unordered_set> /* we can use either set or unordered_set */
 
 using namespace std;
 
 #define test /* remove this line before uploading */
 /* remember to add #ifdef test, #endif when adding test code */
+
+/* general */
+#define SUCCESS 1
+#define FAIL    0
+
+#define ID_NOT_FOUND       10001
+#define WRONG_PASSWORD     10002
+
+#define NO_ENOUGH_MONEY    60001
+
 
 /* Constant */
 const long long MAX_MONEY = 10000000000LL; /* remember the max money in an account is in long long */
@@ -22,6 +35,31 @@ const int ID_SIZE = 128;
 const int PWD_SIZE = 128;
 
 /* Classes */
+
+typedef pair<string,string> UserData;
+
+class Account {
+private:
+    struct StringPairHash {
+        size_t operator()(const UserData &s) const{
+            size_t h1 = hash<string>()(s.first);
+            size_t h2 = hash<string>()(s.second);
+            return h1 ^ (h2 << 1);
+        }
+    };
+    unordered_set<string> name_used;
+    unordered_map<UserData, long long, StringPairHash> acct;
+    typedef unordered_map<UserData, long long, StringPairHash> :: iterator acct_itr;
+    UserData now_user;
+    inline bool exist( const string &id );
+    inline bool islogin();
+public:
+    Account(){now_user = make_pair(string(),string());}
+    bool add ( const string &id, const string &pwd );
+    int remove ( const string &id, const string &pwd );
+    void deposit ( long long num );
+    bool withdraw ( long long num );
+};
 
 /* Global Functions */
 
@@ -143,6 +181,61 @@ int main () {
 }
 
 /* Member Functions */
+
+inline bool Account :: exist ( const string &id ) {
+    return name_used.find (id) != name_used.end();
+}
+
+inline bool Account :: islogin () {
+    return now_user.first.length() > 0;
+}
+
+bool Account :: add ( const string &id, const string &pwd ) {
+    if( exist(id) ) {
+        /* name used */
+        return FAIL;
+    }
+    name_used.insert(id);
+    UserData tmp = make_pair(id, pwd);
+    acct[tmp] = 0;
+    return SUCCESS;
+}
+
+int Account :: remove ( const string &id, const string &pwd ) {
+    if( !exist(id) ) {
+        /* id not found */
+        return ID_NOT_FOUND;
+    }
+    UserData tmp = make_pair(id, pwd);
+    if( acct.find(tmp) == acct.end() ){
+        /* wrong password */
+        return WRONG_PASSWORD;
+    }
+    name_used.erase(id);
+    acct.erase(tmp);
+    return SUCCESS;
+}
+
+void Account :: deposit ( long long num ) {
+    if( !islogin() ){
+        /* not login yet */
+        return;
+    }
+    acct[now_user] += num;
+}
+
+bool Account :: withdraw ( long long num ) {
+    if( !islogin() ){
+        /* not login yet */
+        return FAIL;
+    }
+    acct_itr itr = acct.find(now_user);
+    if(itr->second < num){
+        return FAIL;
+    }
+    itr->second -= num;
+    return SUCCESS;
+}
 
 /* Global Functions */
 
