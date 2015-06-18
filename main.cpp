@@ -25,6 +25,10 @@ using namespace std;
 #define ID_NOT_FOUND       10001
 #define WRONG_PASSWORD     10002
 
+#define ID_ALREADY_USED    20001
+
+#define NOT_LOGIN_YET      30001
+
 #define NO_ENOUGH_MONEY    60001
 
 
@@ -55,23 +59,25 @@ private:
     inline bool islogin();
 public:
     Account(){now_user = make_pair(string(),string());}
-    int add ( const string &id, const string &pwd );
-    int remove ( const string &id, const string &pwd );
-    void deposit ( long long num );
-    int withdraw ( long long num );
+    int login ( const string &id, const string &pwd );  /* ID_NOT_FOUND WRONG_PASSWORD SUCCESS*/
+    int add ( const string &id, const string &pwd );    /* ID_ALREADY_USED SUCCESS */
+    int remove ( const string &id, const string &pwd ); /* ID_NOT_FOUND WRONG_PASSWORD SUCCESS*/
+    int deposit ( long long num );                      /* NOT_LOGIN_YET SUCCESS */ 
+    int withdraw ( long long num );                     /* NOT_LOGIN_YET NO_ENOUGH_MONEY SUCCESS */
+    long long money ();
 };
 
 /* Global Functions */
 
-void account_login    ( char *id, char *pwd );
-void create_account   ( char *id, char *pwd );
-void delete_account   ( char *id, char *pwd );
-void merge_account    ( char *id1, char *pwd1, char *id2, char *pwd2 );
-void account_deposit  ( long long num );
-void account_withdraw ( long long num );
-void account_transfer ( char *id, long long num);
-void find_account     ( char *id );
-void search_account   ( char *id );
+void account_login    ( Account &mng, char *id, char *pwd );
+void create_account   ( Account &mng, char *id, char *pwd );
+void delete_account   ( Account &mng, char *id, char *pwd );
+void merge_account    ( Account &mng, char *id1, char *pwd1, char *id2, char *pwd2 );
+void account_deposit  ( Account &mng, long long num );
+void account_withdraw ( Account &mng, long long num );
+void account_transfer ( Account &mng, char *id, long long num);
+void find_account     ( Account &mng, char *id );
+void search_account   ( Account &mng, char *id );
 
 /* Main */
 
@@ -81,6 +87,7 @@ int main () {
     char id[ID_SIZE], id1[ID_SIZE], id2[ID_SIZE];
     char pwd[PWD_SIZE], pwd1[PWD_SIZE], pwd2[PWD_SIZE];     /* password array */
     long long num;
+    Account acctmng;
 
     while ( ~scanf("%s", buf) ) {
         /* there is no logout command, so we can simply read-in until EOF */
@@ -92,7 +99,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s, [password] = %s\n", "\"login\"", id, pwd);
             #endif
-            account_login(id, pwd);
+            account_login(acctmng, id, pwd);
 
         } else if ( buf[0] == 'c' ) {
             /* create : create a specific account with password
@@ -102,7 +109,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s, [password] = %s\n", "\"create\"", id, pwd);
             #endif
-            create_account(id, pwd);
+            create_account(acctmng, id, pwd);
 
         } else if ( buf[0] == 'd' && buf[2] == 'l' ) { /* command conflicts with deposit */
             /* delete : delete a specific account with password
@@ -112,7 +119,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s, [password] = %s\n", "\"delete\"", id, pwd);
             #endif
-            delete_account(id, pwd);
+            delete_account(acctmng, id, pwd);
 
         } else if ( buf[0] == 'm' ) {
             /* merge : merge the second account into the first one; after merging, the second one is deleted
@@ -122,7 +129,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID1] = %s, [password1] = %s, [ID2] = %s, [password2] = %s\n", "\"merge\"", id1, pwd1, id2, pwd2);
             #endif
-            merge_account(id1, pwd1, id2, pwd2);
+            merge_account(acctmng, id1, pwd1, id2, pwd2);
 
         } else if ( buf[0] == 'd' && buf[2] == 'p' ) { /* command conflicts with delete */
             /* deposit : deposit money into [last-successful-login-ID]
@@ -132,7 +139,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [num] = %lld\n", "\"deposit\"", num);
             #endif
-            account_deposit(num);
+            account_deposit(acctmng, num);
 
         } else if ( buf[0] == 'w' ) {
             /* withdraw : withdraw money from [last-successful-login-ID]
@@ -142,7 +149,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [num] = %lld\n", "\"withdraw\"", num);
             #endif
-            account_withdraw(num);
+            account_withdraw(acctmng, num);
 
         } else if ( buf[0] == 't' ) {
             /* transfer : transfer money from [last-successful-login-ID] to a specific account]
@@ -152,7 +159,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s, [num] = %lld\n", "\"transfer\"", id, num);
             #endif
-            account_transfer(id, num);
+            account_transfer(acctmng, id, num);
 
         } else if ( buf[0] == 'f' ) {
             /* find : find all existing account IDs that matches [wildcard ID] but is different from [last-successful-login-ID]
@@ -162,7 +169,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [wildcard_ID] = %s\n", "\"find\"", id);
             #endif
-            find_account(id);
+            find_account(acctmng, id);
 
         } else if ( buf[0] == 's' ) {
             /* search : search all transfer history of [last-successful-login-ID] from/to a specific account
@@ -172,7 +179,7 @@ int main () {
             #ifdef test
                 printf("Command %-10s : [ID] = %s\n", "\"search\"", id);
             #endif
-            search_account(id);
+            search_account(acctmng, id);
 
         } 
     }
@@ -190,10 +197,24 @@ inline bool Account :: islogin () {
     return now_user.first.length() > 0;
 }
 
+int Account :: login ( const string &id, const string &pwd ) {
+    if( !exist(id) ) {
+        /* id not found */
+        return ID_NOT_FOUND;
+    }
+    UserData tmp = make_pair(id, pwd);
+    if( acct.find(tmp) == acct.end() ) {
+        /* wrong password */
+        return WRONG_PASSWORD;
+    }
+    now_user = tmp;
+    return SUCCESS;
+}
+
 int Account :: add ( const string &id, const string &pwd ) {
     if( exist(id) ) {
         /* name used */
-        return FAIL;
+        return ID_ALREADY_USED;
     }
     name_used.insert(id);
     UserData tmp = make_pair(id, pwd);
@@ -207,7 +228,7 @@ int Account :: remove ( const string &id, const string &pwd ) {
         return ID_NOT_FOUND;
     }
     UserData tmp = make_pair(id, pwd);
-    if( acct.find(tmp) == acct.end() ){
+    if( acct.find(tmp) == acct.end() ) {
         /* wrong password */
         return WRONG_PASSWORD;
     }
@@ -216,18 +237,19 @@ int Account :: remove ( const string &id, const string &pwd ) {
     return SUCCESS;
 }
 
-void Account :: deposit ( long long num ) {
+int Account :: deposit ( long long num ) {
     if( !islogin() ){
         /* not login yet */
-        return;
+        return NOT_LOGIN_YET;
     }
     acct[now_user] += num;
+    return SUCCESS;
 }
 
 int Account :: withdraw ( long long num ) {
     if( !islogin() ){
         /* not login yet */
-        return FAIL;
+        return NOT_LOGIN_YET;
     }
     acct_itr itr = acct.find(now_user);
     if(itr->second < num){
@@ -237,40 +259,85 @@ int Account :: withdraw ( long long num ) {
     return SUCCESS;
 }
 
+long long Account :: money (){
+    if( !islogin() ){
+        /* not login yet */
+        return -1LL;
+    }
+    return acct[now_user];
+}
+
 /* Global Functions */
 
-void account_login ( char *id, char *pwd ) {
-
+void account_login ( Account &mng, char *id, char *pwd ) {
+    string id_str = string(id);
+    string pwd_str = string(pwd);
+    int status = mng.login(id_str, pwd_str);
+    if( status == ID_NOT_FOUND ) {
+        printf("ID %s not found\n", id);
+    } else if ( status == WRONG_PASSWORD ) {
+        puts("wrong password");
+    } else if ( status == SUCCESS){
+        puts("success");
+    } else puts("ERROR RETURN VALUE");
 }
 
-void create_account ( char *id, char *pwd ) {
-
+void create_account ( Account &mng, char *id, char *pwd ) {
+    string id_str = string(id);
+    string pwd_str = string(pwd);
+    int status = mng.add(id_str, pwd_str);
+    if ( status == ID_ALREADY_USED ) {
+        /* todo */
+    } else if ( status == SUCCESS ) {
+         puts("success");
+    } else puts("ERROR RETURN VALUE");
 }
 
-void delete_account ( char *id, char *pwd ) {
-
+void delete_account ( Account &mng, char *id, char *pwd ) {
+    string id_str = string(id);
+    string pwd_str = string(pwd);
+    int status = mng.remove(id_str, pwd_str);
+    if ( status == ID_NOT_FOUND ) {
+        printf("ID %s not found\n", id);
+    } else if ( status == WRONG_PASSWORD ) {
+        puts("wrong password");
+    } else if ( status == SUCCESS ) {
+        puts("success");
+    } else puts("ERROR RETURN VALUE");
 }
 
-void merge_account ( char *id1, char *pwd1, char *id2, char *pwd2 ) {
-
+void merge_account ( Account &mng, char *id1, char *pwd1, char *id2, char *pwd2 ) {
+    /* todo */
 }
 
-void account_deposit ( long long num ) {
-
+void account_deposit ( Account &mng, long long num ) {
+    int status = mng.deposit(num);
+    if ( status == NOT_LOGIN_YET ) {
+        /* not login yet */
+    } else if ( status == SUCCESS ) {
+        printf("success, %lld dollars in current account\n", mng.money());
+    } else puts("ERROR RETURN VALUE");
 }
 
-void account_withdraw ( long long num ) {
-
+void account_withdraw ( Account &mng, long long num ) {
+    int status = mng.withdraw(num);
+    if ( status == NOT_LOGIN_YET ) {
+        /* not login yet */
+    } else if ( status == NO_ENOUGH_MONEY ) {
+        printf("fail, %lld dollars only in current account\n", mng.money());
+    } else if ( status == SUCCESS ) {
+        printf("success, %lld dollars left in current account\n", mng.money());
+    } else puts("ERROR RETURN VALUE");
 }
 
-void account_transfer ( char *id, long long num){
-
+void account_transfer ( Account &mng, char *id, long long num){
+    
 }
 
-void find_account ( char *id ) {
-
+void find_account ( Account &mng, char *id ) {
+    
 }
 
-void search_account ( char *id ) {
-
+void search_account ( Account &mng, char *id ) {
+    
 }
