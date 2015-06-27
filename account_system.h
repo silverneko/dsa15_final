@@ -178,7 +178,7 @@ class AccountSystem{
 
     std::vector<std::string> find(const std::string& pattern)
     {
-      std::string reg("^");
+      std::string reg;//("^");
       for(char p : pattern){
         if(p == '*'){
           reg += ".*";
@@ -188,7 +188,7 @@ class AccountSystem{
           reg += p;
         }
       }
-      reg += '$';
+      //reg += '$';
       std::regex e(reg);
       std::vector<std::string> matches;
       for(auto &ID : IDs){
