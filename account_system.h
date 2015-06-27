@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <tuple>
+#include <regex>
 
 class TransferRecord{
   public:
@@ -41,6 +42,8 @@ class AccountSystem{
     std::vector<std::string> __fromHashID;
     std::vector<int> __parent;          // Use disjoint-set to maintain.
     std::vector<Account> accounts;
+
+    AccountSystem() : timeStamp(0), unusedHashID(0), lastLoginHashID(0) {}
     
     // It doesn't check if ID exists or not.
     int toHashID(const std::string& ID) const
@@ -143,6 +146,68 @@ class AccountSystem{
       __destroy(ID2);
       return std::make_tuple(Success, account1.balance);
     }
+    
+    std::tuple<Status, long long> deposit(long long money)
+    {
+      Account &account = accounts[lastLoginHashID];
+      account.balance += money;
+      return std::make_tuple(Success, account.balance);
+    }
 
-    AccountSystem() : timeStamp(0), unusedHashID(0), lastLoginHashID(0) {}
+    std::tuple<Status, long long> withdraw(long long money)
+    {
+      Account &account = accounts[lastLoginHashID];
+      if(account.balance < money) return std::make_tuple(Fail, account.balance);
+      account.balance -= money;
+      return std::make_tuple(Success, account.balance);
+    }
+
+    std::tuple<Status, long long> transfer(const std::string& ID, long long money)
+    {
+      if(!exist(ID)) return std::make_tuple(IDNotFound, 0);
+      int hashID1 = lastLoginHashID, hashID2 = toHashID(ID);
+      Account &account1 = accounts[hashID1], &account2 = accounts[hashID2];
+      if(account1.balance < money) return std::make_tuple(Fail, account1.balance);
+      account1.balance -= money;
+      account2.balance += money;
+      account1.records.emplace_back(timeStamp, TransferRecord::Withdraw, hashID2, money);
+      account2.records.emplace_back(timeStamp, TransferRecord::Deposit , hashID1, money);
+      timeStamp++;
+      return std::make_tuple(Success, account1.balance);
+    }
+
+    std::vector<std::string> find(const std::string& pattern)
+    {
+      std::string reg("^");
+      for(char p : pattern){
+        if(p == '*'){
+          reg += ".*";
+        }else if(p == '?'){
+          reg += '.';
+        }else{
+          reg += p;
+        }
+      }
+      reg += '$';
+      std::regex e(reg);
+      std::vector<std::string> matches;
+      for(auto &ID : IDs){
+        if((toHashID(ID) != lastLoginHashID) && std::regex_match(ID, e)){
+          matches.push_back(ID);
+        }
+      }
+      return matches;
+    }
+    
+    std::vector<TransferRecord> search(const std::string& ID)
+    {
+      std::vector<TransferRecord> records;
+      Account &account = accounts[lastLoginHashID];
+      for(auto &record : account.records){
+        if(ID == fromHashID(record.hashID)){
+          records.push_back(record);
+        }
+      }
+      return records;
+    }
 };
