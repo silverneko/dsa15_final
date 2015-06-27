@@ -1,5 +1,5 @@
 CC = clang++
-CFLAGS = -O2 -std=c++11 -Wall
+CFLAGS = -O2 -stdlib=libc++ -lc++abi -std=c++11 -Wall
 
 all: main
 

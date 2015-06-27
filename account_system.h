@@ -117,13 +117,13 @@ class AccountSystem{
     std::tuple<Status, long long> merge(const std::string& ID1, const std::string& hashPWD1
                                       , const std::string& ID2, const std::string& hashPWD2)
     {
-      if(!exist(ID1)) return std::make_tuple(IDNotFound, 0);
-      if(!exist(ID2)) return std::make_tuple(IDNotFound, 1);
+      if(!exist(ID1)) return std::make_tuple(IDNotFound, 1);
+      if(!exist(ID2)) return std::make_tuple(IDNotFound, 2);
       int hashID1 = toHashID(ID1);
       int hashID2 = toHashID(ID2);
       Account &account1 = accounts[hashID1], &account2 = accounts[hashID2];
-      if(hashPWD1 != account1.hashPWD) return std::make_tuple(WrongPassword, 0);
-      if(hashPWD2 != account2.hashPWD) return std::make_tuple(WrongPassword, 1);
+      if(hashPWD1 != account1.hashPWD) return std::make_tuple(WrongPassword, 1);
+      if(hashPWD2 != account2.hashPWD) return std::make_tuple(WrongPassword, 2);
       account1.balance += account2.balance;
       merge(hashID1, hashID2);
       std::vector<TransferRecord> records(account1.records.size() + account2.records.size());
