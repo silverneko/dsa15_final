@@ -5,11 +5,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <cstring>
 #include <algorithm>
 #include <iostream>
 #include <regex>
 #include <functional>
+#include <queue>
 #include "account_system.h"
 #include "md5.h"
 
@@ -37,6 +37,7 @@ const long long MAX_MONEY = 10000000000LL; /* remember the max money in an accou
 const int BUFFER_SIZE = 256;
 const int ID_SIZE = 128;
 const int PWD_SIZE = 128;
+const int INF = 1029384756;
 
 /* Global Functions */
 
@@ -159,6 +160,31 @@ int main () {
 
 /* Global Functions */
 
+int score(const string& a, const string& b)
+{
+  int l = min(a.size(), b.size()), dl = abs((int)(a.size()) - (int)(b.size()));
+  int res = dl * (dl + 1) / 2;
+  for(int i = 0; i < l; ++i){
+    if(a[i] != b[i])
+      res += l-i;
+  }
+  return res;
+}
+
+int score_(const string& a, const string& b, int ub)
+{
+  int l = min(a.size(), b.size()), dl = abs((int)(a.size()) - (int)(b.size()));
+  int res = dl * (dl + 1) / 2;
+  if(res >= ub) return INF;
+  for(int i = 0; i < l; ++i){
+    if(a[i] != b[i]){
+      res += l-i;
+      if(res >= ub) return INF;
+    }
+  }
+  return res;
+}
+
 void idNotFound(const string& ID)
 {
   cout << "ID " << ID << " not found\n";
@@ -245,8 +271,36 @@ void account_transfer ( AccountSystem &mng, char *id, long long num){
     long long balance;
     tie(status, balance) = mng.transfer(ID, num);
     if(status == IDNotFound){
-      cout << "ID " << ID << " not found,\n";
-      // Needs to be done. Recommend 10 candidates
+      cout << "ID " << ID << " not found, ";
+      priority_queue<tuple<int, int, string>> Q;
+      int timeStamp = 0;
+      for(auto &candidate : mng.IDs){
+        if(Q.size() >= 10){
+          int scr = score_(ID, candidate, get<0>(Q.top()));
+          if(scr >= get<0>(Q.top())){
+            continue;
+          }else{
+            Q.push(make_tuple(scr, timeStamp, candidate));
+            Q.pop();
+          }
+        }else{
+          Q.push(make_tuple(score(ID, candidate), timeStamp, candidate));
+        }
+        ++timeStamp;
+      }
+      vector<string> candidates;
+      while(!Q.empty()){
+        candidates.emplace_back(get<2>(Q.top()));
+        Q.pop();
+      }
+      reverse(candidates.begin(), candidates.end());
+      if(!candidates.empty()){
+        cout << candidates[0];
+        for(int i = 1; i < candidates.size(); ++i){
+          cout << ',' << candidates[i];
+        }
+      }
+      cout << '\n';
     }else if(status == Fail){
       cout << "fail, " << balance << " dollars only in current account\n";
     }else{
