@@ -1,10 +1,10 @@
 CC = clang++
 CFLAGS = -O2 -std=c++11 -Wall
 
-all: main
+all: final_project
 
-main: main.o md5.o
-	$(CC) $(CFLAGS) main.o md5.o -o main
+final_project: main.o md5.o
+	$(CC) $(CFLAGS) main.o md5.o -o final_project
 
 main.o: main.cpp account_system.h
 	$(CC) $(CFLAGS) -c main.cpp

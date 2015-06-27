@@ -15,7 +15,7 @@
 
 using namespace std;
 
-#define test /* remove this line before uploading */
+//#define test /* remove this line before uploading */
 /* remember to add #ifdef test, #endif when adding test code */
 
 /* general
