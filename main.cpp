@@ -168,6 +168,7 @@ void create_account ( AccountSystem &mng, char *id, char *pwd ) {
     string ID(id), hashPWD(md5(pwd));
     Status status = mng.create(ID, hashPWD);
     if(status == Fail){
+      cout << "ID " << ID << " exists,\n";
       // Needs to recommend IDs here.
     }else{
       cout << "success\n";
@@ -244,7 +245,7 @@ void account_transfer ( AccountSystem &mng, char *id, long long num){
     long long balance;
     tie(status, balance) = mng.transfer(ID, num);
     if(status == IDNotFound){
-      cout << "ID " << ID << " not found,";
+      cout << "ID " << ID << " not found,\n";
       // Needs to be done. Recommend 10 candidates
     }else if(status == Fail){
       cout << "fail, " << balance << " dollars only in current account\n";

@@ -1,4 +1,5 @@
-CC = clang++
+CC = g++
+#CC = clang++
 CFLAGS = -O2 -std=c++11 -Wall
 
 all: final_project
