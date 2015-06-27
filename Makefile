@@ -13,4 +13,4 @@ md5.o: md5.h md5.cpp
 	$(CC) $(CFLAGS) -c md5.cpp
 
 clean:
-	rm -rf *.o main
+	rm -rf *.o main final_project
