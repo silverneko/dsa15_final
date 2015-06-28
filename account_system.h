@@ -8,6 +8,64 @@
 #include <unordered_map>
 #include <unordered_set>
 
+const std::string alphabets("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+
+static int toIndex(char c)
+{
+  if(c <= '9') return c - '0';
+  if(c <= 'Z') return c - 'A' + 10;
+  return c - 'a' + 36;
+}
+
+class Trie{
+  public:
+    bool endHere;
+    int count;
+    Trie *branches[62];
+
+    Trie() : endHere(false), count(0), branches {nullptr} {}
+
+    bool exist(const std::string& str, int pos = 0) const
+    {
+      if(pos >= str.size()){
+        return endHere;      // Return if some string end at this node
+      }
+      int i = toIndex(str[pos]);
+      auto branch = branches[i];
+      if(branch == nullptr){
+        return false;
+      }
+      return branch->exist(str, pos+1);
+    }
+
+    // You should check if str already exists or not before inserting or erasing
+    void insert(const std::string& str, int pos = 0)
+    {
+      if(pos >= str.size()){
+        endHere = true;
+        return ;
+      }
+      ++count;
+      int i = toIndex(str[pos]);
+      if(branches[i] == nullptr){
+        branches[i] = new Trie();
+      }
+      branches[i]->insert(str, pos+1);
+    }
+
+    void erase(const std::string& str, int pos = 0)
+    {
+      if(pos >= str.size()){
+        endHere = false;
+        return ;
+      }
+      --count;
+      int i = toIndex(str[pos]);
+      branches[i]->erase(str, pos+1);
+    }
+
+};
+
 class TransferRecord{
   public:
     enum Type {Deposit, Withdraw};
@@ -35,13 +93,13 @@ enum Status {IDNotFound, WrongPassword, Success, Fail};
 
 class AccountSystem{
   public:
-    static const std::string alphabets;
     int timeStamp;
     int unusedHashID;
     int lastLoginHashID;
 
     std::set<std::string> IDs;                // set of used IDs.
-    std::unordered_set<std::string> __IDs;
+    //std::unordered_set<std::string> __IDs;
+    Trie __IDs;
     std::unordered_map<std::string, int> __toHashID;
     std::vector<std::string> __fromHashID;
     std::vector<int> __parent;          // Use disjoint-set to maintain.
@@ -75,7 +133,8 @@ class AccountSystem{
     
     bool exist(const std::string& ID) const
     {
-      return __IDs.find(ID) != __IDs.end();
+      return __IDs.exist(ID);
+      //return __IDs.find(ID) != __IDs.end();
     }
 
     // All passwords should be hashed before calling functions.
@@ -298,4 +357,4 @@ class AccountSystem{
 };
 
 
-const std::string AccountSystem::alphabets("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+
