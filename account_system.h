@@ -92,6 +92,47 @@ class Account{
 enum Status {IDNotFound, WrongPassword, Success, Fail};
 
 class AccountSystem{
+/* Trie version
+  private:
+    void dfs_find(Trie *now, std::string &str, std::vector<std::string> &vec, const std::string &pattern, std::set<int, std::greater<int>> &ctr){
+        if(now == nullptr) return;
+        if(now->endHere && ctr.find(pattern.length()) != ctr.end()){
+            vec.push_back(str);
+        }
+        ctr.erase(pattern.length());
+        for(int i = 0 ; i < alphabets.length() ; i++) if(now->branches[i] && now->branches[i]->count > 0) {
+            char nc = alphabets[i];
+            std::vector<int> add;
+            std::vector<int> rmv;
+            for(auto itr = ctr.begin() ; itr != ctr.end() ; ){
+                int now = *(itr++);
+                if(pattern[now] == '?' || pattern[now] == nc){
+                    if(ctr.insert(now+1).second == true){
+                        //insert succeed
+                        add.push_back(now+1);
+                    }
+                    ctr.erase(now);
+                    rmv.push_back(now);
+                }else if(pattern[now] == '*'){
+                    if(ctr.insert(now+1).second == true){
+                        //insert succeed
+                        add.push_back(now+1);
+                    }
+                }else{
+                    ctr.erase(now);
+                    rmv.push_back(now);
+                }
+            }
+            if(ctr.size() > 0){
+                str.push_back(nc);
+                dfs_find(now->branches[i], str, vec, pattern, ctr);
+                str.pop_back();
+            }
+            for(int i = 0 ; i < (int)add.size() ; i++) ctr.erase(add[i]);
+            for(int i = 0 ; i < (int)rmv.size() ; i++) ctr.insert(rmv[i]);
+        }
+    }   
+*/
   public:
     int timeStamp;
     int unusedHashID;
@@ -263,6 +304,18 @@ class AccountSystem{
       }
       return matches;
     }
+
+    /* Trie version
+    std::vector<std::string> find(const std::string& pattern)
+    {
+        std::vector<std::string> matches;
+        std::string tmp;
+        std::set<int, std::greater<int>> container;
+        container.insert(0);
+        dfs_find(&__IDs, tmp, matches, pattern, container);
+        return matches;
+    }
+    */
     
     std::vector<TransferRecord> search(const std::string& ID)
     {
