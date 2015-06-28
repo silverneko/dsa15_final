@@ -275,37 +275,39 @@ class AccountSystem{
       }
       return records;
     }
-/*
-    void recommend(std::string& str, int ub, int pos = 0, std::vector<std::string>& candidates)
-    {
-      if(ub == 0){
-        candidates.emplace_back(str);
-        return ;
-      }
-      int inc = str.size() - pos;
-      if(inc >= 1){
-        if(inc > ub){
-          recommend(str, ub, pos+1, candidates);
-        }else{
-          for(char a : alphabets){
-            if(a == '\0'){
-              if(ub - inc)
-            }else if(a != str[pos]){
-              char c = str[pos];
-              str[pos] = a;
-              recommend(str, ub - inc, pos+1, candidates);
-              str[pos] = c;
-            }else{
-              recommend(str, ub, pos+1, candidates);
-            }
-          }
-        }
-      }else{
-        inc = abs(inc) + 1;
-      }
 
+    void get_recommend(std::vector<std::string> &rmd, std::string &now){
+        Trie *ptr = &__IDs;
+        int cnt = 0;
+        std::string tmp;
+        char obs = now.back();
+        for(int i = 0 ; i < now.length() - 1 ; i++){
+            ptr = ptr->branches[ toIndex(now[i]) ];
+            tmp += now[i];
+        }
+        if(ptr != &__IDs && ptr->endHere == false) rmd.push_back(tmp), cnt++;
+        for(int i = 0 ; cnt < 10 && alphabets[i] != obs && i < alphabets.length() ; i++){
+            char nc = alphabets[i];
+            if(ptr->branches[ i ] == nullptr || ptr->branches[ i ]->endHere == false){
+                tmp.push_back(nc);
+                rmd.push_back(tmp);
+                cnt++;
+                tmp.pop_back();
+            }
+        }
+        tmp.push_back(obs);
+        ptr = ptr->branches[ toIndex(obs) ];
+        for(int i = 0 ; cnt < 10 && i < alphabets.length() ; i++){
+            char nc = alphabets[i];
+            if(ptr->branches[ i ] == nullptr || ptr->branches[ i ]->endHere == false){
+                tmp.push_back(nc);
+                rmd.push_back(tmp);
+                cnt++;
+                tmp.pop_back();
+            }
+        }
     }
-*/
+/*
     void get_recommend(std::vector<std::string> &rmd, std::string &now){
         std::string tmp = now;
         char obs = tmp.back();
@@ -354,6 +356,7 @@ class AccountSystem{
             }
         }
     }
+    */
 };
 
 
