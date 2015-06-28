@@ -210,4 +210,53 @@ class AccountSystem{
       }
       return records;
     }
+
+    void get_recommend(std::vector<std::string> &rmd, std::string &now){
+        std::string tmp = now;
+        char obs = tmp.back();
+        bool get_obs = false;
+        tmp.pop_back();
+        int cnt = 0;
+        if(tmp.length() > 0 && !exist(tmp)) rmd.push_back(tmp), cnt++;
+        tmp.push_back('0');
+        if(cnt < 10){
+            for(char nc = '0' ; !get_obs && cnt < 10 && nc <= '9' ; nc++){
+                if(nc == obs){
+                    get_obs = true;
+                    break;
+                }
+                tmp.pop_back();
+                tmp.push_back(nc);
+                if(!exist(tmp)) rmd.push_back(tmp), cnt++;
+            }
+            for(char nc = 'A' ; !get_obs && cnt < 10 && nc <= 'Z' ; nc++){
+                if(nc == obs){
+                    get_obs = true;
+                    break;
+                }
+                tmp.pop_back();
+                tmp.push_back(nc);
+                if(!exist(tmp)) rmd.push_back(tmp), cnt++;
+            }
+            for(char nc = 'a' ; !get_obs && cnt < 10 && nc <= 'z' ; nc++){
+                if(nc == obs){
+                    get_obs = true;
+                    break;
+                }
+                tmp.pop_back();
+                tmp.push_back(nc);
+                if(!exist(tmp)) rmd.push_back(tmp), cnt++;
+            }
+        }
+        tmp.pop_back();
+        tmp.push_back(obs);
+        tmp.push_back(obs);
+        if(cnt < 10){
+            for(char nc = '0' ; cnt < 10 && nc <= '9' ; nc++){
+                tmp.pop_back();
+                tmp.push_back(nc);
+                rmd.push_back(tmp), cnt++;
+            }
+        }
+    }
 };

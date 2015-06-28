@@ -194,8 +194,15 @@ void create_account ( AccountSystem &mng, char *id, char *pwd ) {
     string ID(id), hashPWD(md5(pwd));
     Status status = mng.create(ID, hashPWD);
     if(status == Fail){
-      cout << "ID " << ID << " exists,\n";
+      cout << "ID " << ID << " exists, ";
       // Needs to recommend IDs here.
+      vector<string> rmd;
+      mng.get_recommend(rmd, ID);
+      for(int i = 0 ; i < (int)rmd.size() ; i++){
+        if(i != 0) putchar(',');
+        cout<<rmd[i];
+      }
+      puts("");
     }else{
       cout << "success\n";
     }
