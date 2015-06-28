@@ -81,12 +81,11 @@ class TransferRecord{
 class Account{
   public:
     const std::string ID;           // This may collide.
-    const int hashID;               // This should be unique all the time.
     const std::string hashPWD;
     long long balance;
     std::vector<TransferRecord> records;
-    Account(const std::string& ID, int hashID, const std::string& hashPWD, long long balance = 0) : 
-      ID(ID), hashID(hashID), hashPWD(hashPWD), balance(balance), records() {}
+    Account(const std::string& ID, const std::string& hashPWD, long long balance = 0) : 
+      ID(ID), hashPWD(hashPWD), balance(balance), records() {}
 };
 
 enum Status {IDNotFound, WrongPassword, Success, Fail};
@@ -183,7 +182,7 @@ class AccountSystem{
     {
       if(exist(ID)) return Fail;
       int hashID = unusedHashID++;
-      accounts.emplace_back(ID, hashID, hashPWD, 0);
+      accounts.emplace_back(ID, hashPWD, 0);
       IDs.insert(ID);
       __IDs.insert(ID);
       __toHashID[ID] = hashID;
@@ -282,25 +281,92 @@ class AccountSystem{
       return std::make_tuple(Success, account1.balance);
     }
 
+    bool match(char a, char b)
+    {
+      if(a == '?') return true;
+      if(b == '?') return true;
+      return a == b;
+    }
+
     std::vector<std::string> find(const std::string& pattern)
     {
-      std::string reg;//("^");
-      for(char p : pattern){
-        if(p == '*'){
-          reg += ".*";
-        }else if(p == '?'){
-          reg += '.';
-        }else{
-          reg += p;
-        }
-      }
-      //reg += '$';
-      std::regex e(reg);
+      int lb = 0, rb = pattern.size();
+      while(lb < pattern.size() && pattern[lb] != '*') ++lb;
+      while(rb > 0 && pattern[rb-1] != '*') --rb;
+      std::string prefix(pattern, 0, lb), suffix(pattern, rb);
+
+      // Special case with no '*' at all
       std::vector<std::string> matches;
-      for(auto &ID : IDs){
-        if((toHashID(ID) != lastLoginHashID) && std::regex_match(ID, e)){
-          matches.push_back(ID);
+      if(lb == pattern.size()){
+        for(auto &ID : IDs){
+          if(ID.size() == pattern.size()){
+            bool flag = true;
+            for(int i = 0; flag && i < ID.size(); ++i){
+              if(!match(ID[i], pattern[i]))
+                flag = false;
+            }
+            if(flag) matches.push_back(ID);
+          }
         }
+        return matches;
+      }
+
+      // General case
+      std::vector<std::tuple<std::string, std::vector<int>>> failureFunctions;
+      while(lb < rb){
+        int pos = lb;
+        while(lb < rb && pattern[lb] != '*') ++lb;
+
+        std::string mat(pattern, pos, lb - pos);
+        failureFunctions.emplace_back(mat, std::vector<int>());
+        auto &f = std::get<1>(*(failureFunctions.end() - 1));
+        f.push_back(-1);
+        for(int i = 1, j = -1; i < pattern.size(); ++i){
+          while(j >= 0 && !match(pattern[j + 1], pattern[i])){
+            j = f[j];
+          }
+          if(match(pattern[j+1], pattern[i])) ++j;
+          f.push_back(j);
+        }
+        while(lb < rb && pattern[lb] == '*') ++lb;
+      }
+
+      for(const std::string &ID : IDs){
+        bool flag = true;
+        if(ID.size() < prefix.size()) continue;
+        for(int i = 0; flag && i < prefix.size(); ++i){
+          if(!match(ID[i], prefix[i]))
+            flag = false;
+        }
+        if(flag == false) continue;
+        if(ID.size() < suffix.size()) continue;
+        for(int i = 0, j = ID.size() - suffix.size(); flag && i < suffix.size(); ++i, ++j){
+          if(!match(ID[j], suffix[i]))
+            flag = false;
+        }
+        if(flag == false) continue;
+        int i = prefix.size();
+        for(const auto& failureFunction : failureFunctions){
+          const std::string& p = std::get<0>(failureFunction);
+          const auto& f = std::get<1>(failureFunction);
+          flag = false;
+          for(int j = -1; i < ID.size() - suffix.size(); ++i){
+            while(j >= 0 && !match(p[j+1], ID[i]))
+              j = f[j];
+            if(match(p[j+1], ID[i])) ++j;
+            if(j == p.size() - 1){
+              // cout << "\"" << p << "\"" << " appears at " << i - p.size() + 1 << endl;
+              ++i;
+              flag = true;
+              break;
+            }
+          }
+          if(flag == false){
+            break;
+          }
+        }
+        if(flag == false) continue;
+        matches.push_back(ID);
       }
       return matches;
     }
