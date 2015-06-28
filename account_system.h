@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <list>
 #include <tuple>
 #include <regex>
 #include <unordered_map>
@@ -85,13 +86,19 @@ class TransferRecord{
       timeStamp(timeStamp), type(type), hashID(hashID), money(money) {}
 };
 
+bool myComp(TransferRecord a, TransferRecord b)
+{
+  return a.timeStamp <= b.timeStamp;
+}
+
 class Account{
   public:
     const std::string ID;           // This may collide.
     const std::string hashPWD;
     long long balance;
     std::vector<TransferRecord> records;
-    Account(const std::string& ID, const std::string& hashPWD, long long balance = 0) : 
+    // std::list<TransferRecord> records;
+      Account(const std::string& ID, const std::string& hashPWD, long long balance = 0) : 
       ID(ID), hashPWD(hashPWD), balance(balance), records() {}
 };
 
@@ -246,6 +253,7 @@ class AccountSystem{
       if(hashPWD2 != account2.hashPWD) return std::make_tuple(WrongPassword, 2);
       account1.balance += account2.balance;
       merge(hashID1, hashID2);
+
       std::vector<TransferRecord> records(account1.records.size() + account2.records.size());
       auto it1 = account1.records.begin(), it2 = account2.records.begin();
       auto end1 = account1.records.end(), end2 = account2.records.end();
@@ -263,6 +271,7 @@ class AccountSystem{
         }
       }
       account1.records = records;
+      // account1.records.merge(account2.records, myComp);
       __destroy(ID2);
       return std::make_tuple(Success, account1.balance);
     }
