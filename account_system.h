@@ -155,9 +155,10 @@ class AccountSystem{
     AccountSystem() : timeStamp(0), unusedHashID(0), lastLoginHashID(0) {}
     
     // It doesn't check if ID exists or not.
-    int toHashID(const std::string& ID) const
+    // Now it checks if ID exists or not.
+    std::tuple<bool, int> toHashID(const std::string& ID) const
     {
-      return std::get<1>(__IDs.exist(ID));
+      return __IDs.exist(ID);
       //return __toHashID.at(ID);
     }
 
@@ -201,8 +202,10 @@ class AccountSystem{
 
     Status login(const std::string& ID, const std::string& hashPWD)
     {
-      if(!exist(ID)) return IDNotFound;
-      int hashID = toHashID(ID);
+      bool e;
+      int hashID;
+      std::tie(e, hashID) = toHashID(ID);
+      if(!e) return IDNotFound;
       if(hashPWD != accounts[hashID].hashPWD){
         return WrongPassword;
       }
@@ -219,8 +222,10 @@ class AccountSystem{
 
     Status destroy(const std::string& ID, const std::string& hashPWD)
     {
-      if(!exist(ID)) return IDNotFound;
-      int hashID = toHashID(ID);
+      bool e;
+      int hashID;
+      std::tie(e, hashID) = toHashID(ID);
+      if(!e) return IDNotFound;
       Account &account = accounts[hashID];
       if(hashPWD != account.hashPWD) return WrongPassword;
       __destroy(ID);
@@ -230,10 +235,12 @@ class AccountSystem{
     std::tuple<Status, long long> merge(const std::string& ID1, const std::string& hashPWD1
                                       , const std::string& ID2, const std::string& hashPWD2)
     {
-      if(!exist(ID1)) return std::make_tuple(IDNotFound, 1);
+      bool e;
+      int hashID1, hashID2;
+      std::tie(e, hashID1) = toHashID(ID1);
+      if(!e) return std::make_tuple(IDNotFound, 1);
+      std::tie(e, hashID2) = toHashID(ID2);
       if(!exist(ID2)) return std::make_tuple(IDNotFound, 2);
-      int hashID1 = toHashID(ID1);
-      int hashID2 = toHashID(ID2);
       Account &account1 = accounts[hashID1], &account2 = accounts[hashID2];
       if(hashPWD1 != account1.hashPWD) return std::make_tuple(WrongPassword, 1);
       if(hashPWD2 != account2.hashPWD) return std::make_tuple(WrongPassword, 2);
@@ -277,8 +284,10 @@ class AccountSystem{
 
     std::tuple<Status, long long> transfer(const std::string& ID, long long money)
     {
-      if(!exist(ID)) return std::make_tuple(IDNotFound, 0);
-      int hashID1 = lastLoginHashID, hashID2 = toHashID(ID);
+      bool e;
+      int hashID1 = lastLoginHashID, hashID2;
+      std::tie(e, hashID2) = toHashID(ID);
+      if(!e) return std::make_tuple(IDNotFound, 0);
       Account &account1 = accounts[hashID1], &account2 = accounts[hashID2];
       if(account1.balance < money) return std::make_tuple(Fail, account1.balance);
       account1.balance -= money;
