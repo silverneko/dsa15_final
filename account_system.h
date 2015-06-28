@@ -5,6 +5,8 @@
 #include <set>
 #include <tuple>
 #include <regex>
+#include <unordered_map>
+#include <unordered_set>
 
 class TransferRecord{
   public:
@@ -33,12 +35,14 @@ enum Status {IDNotFound, WrongPassword, Success, Fail};
 
 class AccountSystem{
   public:
+    static const std::string alphabets;
     int timeStamp;
     int unusedHashID;
     int lastLoginHashID;
 
     std::set<std::string> IDs;                // set of used IDs.
-    std::map<std::string, int> __toHashID;
+    std::unordered_set<std::string> __IDs;
+    std::unordered_map<std::string, int> __toHashID;
     std::vector<std::string> __fromHashID;
     std::vector<int> __parent;          // Use disjoint-set to maintain.
     std::vector<Account> accounts;
@@ -71,7 +75,7 @@ class AccountSystem{
     
     bool exist(const std::string& ID) const
     {
-      return IDs.find(ID) != IDs.end();
+      return __IDs.find(ID) != __IDs.end();
     }
 
     // All passwords should be hashed before calling functions.
@@ -81,6 +85,7 @@ class AccountSystem{
       int hashID = unusedHashID++;
       accounts.emplace_back(ID, hashID, hashPWD, 0);
       IDs.insert(ID);
+      __IDs.insert(ID);
       __toHashID[ID] = hashID;
       __fromHashID.push_back(ID);
       __parent.push_back(hashID);
@@ -101,6 +106,7 @@ class AccountSystem{
     void __destroy(const std::string& ID)
     {
       IDs.erase(ID);
+      __IDs.erase(ID);
       __toHashID.erase(ID);
     }
 
@@ -210,7 +216,37 @@ class AccountSystem{
       }
       return records;
     }
+/*
+    void recommend(std::string& str, int ub, int pos = 0, std::vector<std::string>& candidates)
+    {
+      if(ub == 0){
+        candidates.emplace_back(str);
+        return ;
+      }
+      int inc = str.size() - pos;
+      if(inc >= 1){
+        if(inc > ub){
+          recommend(str, ub, pos+1, candidates);
+        }else{
+          for(char a : alphabets){
+            if(a == '\0'){
+              if(ub - inc)
+            }else if(a != str[pos]){
+              char c = str[pos];
+              str[pos] = a;
+              recommend(str, ub - inc, pos+1, candidates);
+              str[pos] = c;
+            }else{
+              recommend(str, ub, pos+1, candidates);
+            }
+          }
+        }
+      }else{
+        inc = abs(inc) + 1;
+      }
 
+    }
+*/
     void get_recommend(std::vector<std::string> &rmd, std::string &now){
         std::string tmp = now;
         char obs = tmp.back();
@@ -260,3 +296,6 @@ class AccountSystem{
         }
     }
 };
+
+
+const std::string AccountSystem::alphabets("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
