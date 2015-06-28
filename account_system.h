@@ -20,29 +20,35 @@ static int toIndex(char c)
 class Trie{
   public:
     bool endHere;
+    int __hashID;
     int count;
     Trie *branches[62];
 
-    Trie() : endHere(false), count(0), branches {nullptr} {}
+    Trie() : endHere(false), __hashID(-1), count(0), branches {nullptr} {}
 
-    bool exist(const std::string& str, int pos = 0) const
+    std::tuple<bool, int> exist(const std::string& str, int pos = 0) const
     {
       if(pos >= str.size()){
-        return endHere;      // Return if some string end at this node
+        if(endHere){
+          return std::make_tuple(endHere, __hashID);      // Return if some string end at this node
+        }else{
+          return std::make_tuple(false, -1);
+        }
       }
       int i = toIndex(str[pos]);
       auto branch = branches[i];
       if(branch == nullptr){
-        return false;
+        return std::make_tuple(false, -1);
       }
       return branch->exist(str, pos+1);
     }
 
     // You should check if str already exists or not before inserting or erasing
-    void insert(const std::string& str, int pos = 0)
+    void insert(const std::string& str, int hashID, int pos = 0)
     {
       if(pos >= str.size()){
         endHere = true;
+        __hashID = hashID;
         return ;
       }
       ++count;
@@ -57,6 +63,7 @@ class Trie{
     {
       if(pos >= str.size()){
         endHere = false;
+        __hashID = -1;
         return ;
       }
       --count;
@@ -140,7 +147,7 @@ class AccountSystem{
     std::set<std::string> IDs;                // set of used IDs.
     //std::unordered_set<std::string> __IDs;
     Trie __IDs;
-    std::unordered_map<std::string, int> __toHashID;
+    //std::unordered_map<std::string, int> __toHashID;
     std::vector<std::string> __fromHashID;
     std::vector<int> __parent;          // Use disjoint-set to maintain.
     std::vector<Account> accounts;
@@ -150,7 +157,8 @@ class AccountSystem{
     // It doesn't check if ID exists or not.
     int toHashID(const std::string& ID) const
     {
-      return __toHashID.at(ID);
+      return std::get<1>(__IDs.exist(ID));
+      //return __toHashID.at(ID);
     }
 
     int find(int hashID)
@@ -173,7 +181,7 @@ class AccountSystem{
     
     bool exist(const std::string& ID) const
     {
-      return __IDs.exist(ID);
+      return std::get<0>(__IDs.exist(ID));
       //return __IDs.find(ID) != __IDs.end();
     }
 
@@ -184,8 +192,8 @@ class AccountSystem{
       int hashID = unusedHashID++;
       accounts.emplace_back(ID, hashPWD, 0);
       IDs.insert(ID);
-      __IDs.insert(ID);
-      __toHashID[ID] = hashID;
+      __IDs.insert(ID, hashID);
+      //__toHashID[ID] = hashID;
       __fromHashID.push_back(ID);
       __parent.push_back(hashID);
       return Success;
@@ -206,7 +214,7 @@ class AccountSystem{
     {
       IDs.erase(ID);
       __IDs.erase(ID);
-      __toHashID.erase(ID);
+      //__toHashID.erase(ID);
     }
 
     Status destroy(const std::string& ID, const std::string& hashPWD)
