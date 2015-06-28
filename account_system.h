@@ -56,7 +56,7 @@ class Trie{
       if(branches[i] == nullptr){
         branches[i] = new Trie();
       }
-      branches[i]->insert(str, pos+1);
+      branches[i]->insert(str, hashID, pos+1);
     }
 
     void erase(const std::string& str, int pos = 0)
