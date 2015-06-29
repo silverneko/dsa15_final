@@ -94,7 +94,7 @@ class Account{
     const std::string ID;           // This may collide.
     const std::string hashPWD;
     long long balance;
-    std::vector<const TransferRecord*> records;
+    std::vector<TransferRecord> records;
     Account(const std::string& ID, const std::string& hashPWD, long long balance = 0) : 
       ID(ID), hashPWD(hashPWD), balance(balance), records() {}
 };
@@ -250,7 +250,7 @@ class AccountSystem{
       if(hashPWD2 != account2.hashPWD) return std::make_tuple(WrongPassword, 2);
       account1.balance += account2.balance;
       merge(hashID1, hashID2);
-      std::vector<const TransferRecord*> records(account1.records.size() + account2.records.size());
+      std::vector<TransferRecord> records(account1.records.size() + account2.records.size());
       auto it1 = account1.records.begin(), end1 = account1.records.end();
       auto it2 = account2.records.begin(), end2 = account2.records.end();
       for(auto &record : records){
@@ -259,7 +259,7 @@ class AccountSystem{
         }else if(it2 == end2){
           record = *it1++;
         }else{
-          if((*it1)->timeStamp <= (*it2)->timeStamp){
+          if(it1->timeStamp <= it2->timeStamp){
             record = *it1++;
           }else{
             record = *it2++;
@@ -296,8 +296,8 @@ class AccountSystem{
       if(account1.balance < money) return std::make_tuple(Fail, account1.balance);
       account1.balance -= money;
       account2.balance += money;
-      account1.records.push_back(new TransferRecord(timeStamp, TransferRecord::Withdraw, hashID2, money));
-      account2.records.push_back(new TransferRecord(timeStamp, TransferRecord::Deposit , hashID1, money));
+      account1.records.emplace_back(timeStamp, TransferRecord::Withdraw, hashID2, money);
+      account2.records.emplace_back(timeStamp, TransferRecord::Deposit , hashID1, money);
       timeStamp++;
       return std::make_tuple(Success, account1.balance);
     }
@@ -409,8 +409,8 @@ class AccountSystem{
       std::vector<const TransferRecord*> records;
       Account &account = accounts[lastLoginHashID];
       for(auto &record : account.records){
-        if(ID == fromHashID(record->hashID)){
-          records.push_back(record);
+        if(ID == fromHashID(record.hashID)){
+          records.push_back(&record);
         }
       }
       return records;
