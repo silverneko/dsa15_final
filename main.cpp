@@ -200,7 +200,7 @@ void create_account ( AccountSystem &mng, char *id, char *pwd ) {
       mng.get_recommend(rmd, ID);
       for(int i = 0 ; i < (int)rmd.size() ; i++){
         if(i != 0) putchar(',');
-        cout<<rmd[i];
+        cout << rmd[i];
       }
       puts("");
     }else{
@@ -316,27 +316,27 @@ void account_transfer ( AccountSystem &mng, char *id, long long num){
 }
 
 void find_account ( AccountSystem &mng, char *id ) {
-  vector<string> matches(mng.find(id));
+  vector<const string*> matches(mng.find(id));
   if(matches.size() > 0){
-    cout << matches[0];
+    cout << *matches[0];
     for(int i = 1; i < matches.size(); ++i)
-      cout << ',' << matches[i];
+      cout << ',' << *matches[i];
   }
   cout << '\n';
 }
 
 void search_account ( AccountSystem &mng, char *id ) {
-  vector<TransferRecord> records(mng.search(id));
+  vector<const TransferRecord*> records(mng.search(id));
   if(records.size() == 0){
     cout << "no record\n";
   }else{
     for(auto &record : records){
-      if(record.type == TransferRecord::Deposit){
+      if(record->type == TransferRecord::Deposit){
         cout << "From ";
-      }else if(record.type == TransferRecord::Withdraw){
+      }else if(record->type == TransferRecord::Withdraw){
         cout << "To ";
       }
-      cout << mng.fromHashID(record.hashID) << ' ' << record.money << '\n';
+      cout << mng.fromHashID(record->hashID) << ' ' << record->money << '\n';
     }
   }
 }

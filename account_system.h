@@ -17,6 +17,10 @@ static int toIndex(char c)
   return c - 'a' + 36;
 }
 
+// Helper class for std::reference_wrapper
+template<class T>
+using Ref = std::reference_wrapper<T>;
+
 class Trie{
   public:
     bool endHere;
@@ -90,7 +94,7 @@ class Account{
     const std::string ID;           // This may collide.
     const std::string hashPWD;
     long long balance;
-    std::vector<TransferRecord> records;
+    std::vector<const TransferRecord*> records;
     Account(const std::string& ID, const std::string& hashPWD, long long balance = 0) : 
       ID(ID), hashPWD(hashPWD), balance(balance), records() {}
 };
@@ -240,29 +244,29 @@ class AccountSystem{
       std::tie(e, hashID1) = toHashID(ID1);
       if(!e) return std::make_tuple(IDNotFound, 1);
       std::tie(e, hashID2) = toHashID(ID2);
-      if(!exist(ID2)) return std::make_tuple(IDNotFound, 2);
+      if(!e) return std::make_tuple(IDNotFound, 2);
       Account &account1 = accounts[hashID1], &account2 = accounts[hashID2];
       if(hashPWD1 != account1.hashPWD) return std::make_tuple(WrongPassword, 1);
       if(hashPWD2 != account2.hashPWD) return std::make_tuple(WrongPassword, 2);
       account1.balance += account2.balance;
       merge(hashID1, hashID2);
-      std::vector<TransferRecord> records(account1.records.size() + account2.records.size());
-      auto it1 = account1.records.begin(), it2 = account2.records.begin();
-      auto end1 = account1.records.end(), end2 = account2.records.end();
+      std::vector<const TransferRecord*> records(account1.records.size() + account2.records.size());
+      auto it1 = account1.records.begin(), end1 = account1.records.end();
+      auto it2 = account2.records.begin(), end2 = account2.records.end();
       for(auto &record : records){
         if(it1 == end1){
           record = *it2++;
         }else if(it2 == end2){
           record = *it1++;
         }else{
-          if(it1->timeStamp <= it2->timeStamp){
+          if((*it1)->timeStamp <= (*it2)->timeStamp){
             record = *it1++;
           }else{
             record = *it2++;
           }
         }
       }
-      account1.records = records;
+      swap(account1.records, records);
       __destroy(ID2);
       return std::make_tuple(Success, account1.balance);
     }
@@ -292,8 +296,8 @@ class AccountSystem{
       if(account1.balance < money) return std::make_tuple(Fail, account1.balance);
       account1.balance -= money;
       account2.balance += money;
-      account1.records.emplace_back(timeStamp, TransferRecord::Withdraw, hashID2, money);
-      account2.records.emplace_back(timeStamp, TransferRecord::Deposit , hashID1, money);
+      account1.records.push_back(new TransferRecord(timeStamp, TransferRecord::Withdraw, hashID2, money));
+      account2.records.push_back(new TransferRecord(timeStamp, TransferRecord::Deposit , hashID1, money));
       timeStamp++;
       return std::make_tuple(Success, account1.balance);
     }
@@ -305,7 +309,7 @@ class AccountSystem{
       return a == b;
     }
 
-    std::vector<std::string> find(const std::string& pattern)
+    std::vector<const std::string*> find(const std::string& pattern)
     {
       int lb = 0, rb = pattern.size();
       while(lb < pattern.size() && pattern[lb] != '*') ++lb;
@@ -313,7 +317,7 @@ class AccountSystem{
       std::string prefix(pattern, 0, lb), suffix(pattern, rb);
 
       // Special case with no '*' at all
-      std::vector<std::string> matches;
+      std::vector<const std::string*> matches;
       if(lb == pattern.size()){
         for(auto &ID : IDs){
           if(ID.size() == pattern.size()){
@@ -322,7 +326,7 @@ class AccountSystem{
               if(!match(ID[i], pattern[i]))
                 flag = false;
             }
-            if(flag) matches.push_back(ID);
+            if(flag) matches.push_back(&ID);
           }
         }
         return matches;
@@ -336,7 +340,7 @@ class AccountSystem{
 
         std::string mat(pattern, pos, lb - pos);
         failureFunctions.emplace_back(mat, std::vector<int>());
-        auto &f = std::get<1>(*(failureFunctions.end() - 1));
+        auto &f = std::get<1>(failureFunctions.back());
         f.push_back(-1);
         for(int i = 1, j = -1; i < pattern.size(); ++i){
           while(j >= 0 && !match(pattern[j + 1], pattern[i])){
@@ -383,7 +387,7 @@ class AccountSystem{
           }
         }
         if(flag == false) continue;
-        matches.push_back(ID);
+        matches.push_back(&ID);
       }
       return matches;
     }
@@ -400,12 +404,12 @@ class AccountSystem{
     }
     */
     
-    std::vector<TransferRecord> search(const std::string& ID)
+    std::vector<const TransferRecord*> search(const std::string& ID)
     {
-      std::vector<TransferRecord> records;
+      std::vector<const TransferRecord*> records;
       Account &account = accounts[lastLoginHashID];
       for(auto &record : account.records){
-        if(ID == fromHashID(record.hashID)){
+        if(ID == fromHashID(record->hashID)){
           records.push_back(record);
         }
       }
