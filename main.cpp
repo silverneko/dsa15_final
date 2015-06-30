@@ -2,7 +2,6 @@
  * Author : silverneko bigelephant29 carolinetychen
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <string>
 #include <algorithm>
@@ -173,7 +172,7 @@ void create_account ( AccountSystem &mng, char *id, char *pwd ) {
       vector<string> rmd;
       mng.get_recommend(rmd, ID);
       for(int i = 0 ; i < (int)rmd.size() ; i++){
-        if(i != 0) putchar(',');
+        if(i != 0) cout << ',';
         cout << rmd[i];
       }
       cout << endl;
