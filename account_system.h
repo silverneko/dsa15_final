@@ -91,6 +91,16 @@ class Trie{
 
     void erase(const std::string& str, int pos = 0)
     {
+      /* now using loop version */
+      Trie *now = (Trie*)this;
+      for(int i = 0 ; i < str.length() ; i++){
+        --now->count;
+        int tmp = toIndex(str[i]);
+        now = now->branches[tmp];
+      }
+      now->endHere = false;
+      now->__hashID = -1;
+      /* recursive version
       if(pos >= str.size()){
         endHere = false;
         __hashID = -1;
@@ -99,6 +109,7 @@ class Trie{
       --count;
       int i = toIndex(str[pos]);
       branches[i]->erase(str, pos+1);
+      */
     }
 
 };
