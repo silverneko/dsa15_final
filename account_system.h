@@ -134,7 +134,7 @@ class Account{
     long long balance;
     std::vector<TransferRecord> records;
     // std::list<TransferRecord> records;
-      Account(const std::string& ID, const std::string& hashPWD, long long balance = 0) : 
+    Account(const std::string& ID, const std::string& hashPWD, long long balance = 0) : 
       ID(ID), hashPWD(hashPWD), balance(balance), records() {}
 };
 
@@ -195,7 +195,11 @@ class AccountSystem{
     std::vector<int> __parent;          // Use disjoint-set to maintain.
     std::vector<Account> accounts;
 
-    AccountSystem() : timeStamp(0), unusedHashID(0), lastLoginHashID(0) {}
+    AccountSystem() : timeStamp(0), unusedHashID(0), lastLoginHashID(0)
+    {
+      __parent.reserve(1000000);
+      accounts.reserve(1000000);
+    }
     
     // It doesn't check if ID exists or not.
     // Now it checks if ID exists or not.
