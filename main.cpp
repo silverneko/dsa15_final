@@ -40,26 +40,27 @@ const int INF = 1029384756;
 
 /* Global Functions */
 
-void account_login    ( AccountSystem &mng, char *id, char *pwd );
-void create_account   ( AccountSystem &mng, char *id, char *pwd );
-void delete_account   ( AccountSystem &mng, char *id, char *pwd );
-void merge_account    ( AccountSystem &mng, char *id1, char *pwd1, char *id2, char *pwd2 );
+void account_login    ( AccountSystem &mng, string &id, string &pwd );
+void create_account   ( AccountSystem &mng, string &id, string &pwd );
+void delete_account   ( AccountSystem &mng, string &id, string &pwd );
+void merge_account    ( AccountSystem &mng, string &id1, string &pwd1, string &id2, string &pwd2 );
 void account_deposit  ( AccountSystem &mng, long long num );
 void account_withdraw ( AccountSystem &mng, long long num );
-void account_transfer ( AccountSystem &mng, char *id, long long num);
-void find_account     ( AccountSystem &mng, char *id );
-void search_account   ( AccountSystem &mng, char *id );
+void account_transfer ( AccountSystem &mng, string &id, long long num);
+void find_account     ( AccountSystem &mng, string &id );
+void search_account   ( AccountSystem &mng, string &id );
 
 /* Main */
 
 int main () {
     ios_base::sync_with_stdio(false);
-    char buf[BUFFER_SIZE];  /* char array buffer for inputting command type */
-    char id[ID_SIZE], id1[ID_SIZE], id2[ID_SIZE];
-    char pwd[PWD_SIZE], pwd1[PWD_SIZE], pwd2[PWD_SIZE];     /* password array */
+    //char buf[BUFFER_SIZE];  /* char array buffer for inputting command type */
+    //char id[ID_SIZE], id1[ID_SIZE], id2[ID_SIZE];
+    //char pwd[PWD_SIZE], pwd1[PWD_SIZE], pwd2[PWD_SIZE];     /* password array */
     long long num;
     AccountSystem acctmng;
-
+    
+    string buf, id, id1, id2, pwd, pwd1, pwd2;
     while ( cin >> buf ) {
         /* there is no logout command, so we can simply read-in until EOF */
         if ( buf[0] == 'l' ) {
@@ -163,8 +164,8 @@ void idNotFound(const string& ID)
   cout << "ID " << ID << " not found\n";
 }
 
-void create_account ( AccountSystem &mng, char *id, char *pwd ) {
-    string ID(id), hashPWD(md5(pwd));
+void create_account ( AccountSystem &mng, string &ID, string &pwd ) {
+    string hashPWD(md5(pwd));
     Status status = mng.create(ID, hashPWD);
     if(status == Fail){
       cout << "ID " << ID << " exists, ";
@@ -181,8 +182,8 @@ void create_account ( AccountSystem &mng, char *id, char *pwd ) {
     }
 }
 
-void account_login ( AccountSystem &mng, char *id, char *pwd ) {
-    string ID(id), hashPWD(md5(pwd));
+void account_login ( AccountSystem &mng, string &ID, string &pwd ) {
+    string hashPWD(md5(pwd));
     Status status = mng.login(ID, hashPWD);
     if(status == IDNotFound){
       idNotFound(ID);
@@ -193,8 +194,8 @@ void account_login ( AccountSystem &mng, char *id, char *pwd ) {
     }
 }
 
-void delete_account ( AccountSystem &mng, char *id, char *pwd ) {
-    string ID(id), hashPWD(md5(pwd));
+void delete_account ( AccountSystem &mng, string &ID, string &pwd ) {
+    string hashPWD(md5(pwd));
     Status status = mng.destroy(ID, hashPWD);
     if(status == IDNotFound){
       idNotFound(ID);
@@ -205,9 +206,8 @@ void delete_account ( AccountSystem &mng, char *id, char *pwd ) {
     }
 }
 
-void merge_account ( AccountSystem &mng, char *id1, char *pwd1, char *id2, char *pwd2 ) {
-    string ID1(id1), hashPWD1(md5(pwd1));
-    string ID2(id2), hashPWD2(md5(pwd2));
+void merge_account ( AccountSystem &mng, string &ID1, string &pwd1, string &ID2, string &pwd2 ) {
+    string hashPWD1(md5(pwd1)), hashPWD2(md5(pwd2));
     Status status;
     long long balance;
     tie(status, balance) = mng.merge(ID1, hashPWD1, ID2, hashPWD2);
@@ -245,8 +245,7 @@ void account_withdraw ( AccountSystem &mng, long long num ) {
     }
 }
 
-void account_transfer ( AccountSystem &mng, char *id, long long num){
-    string ID(id);
+void account_transfer ( AccountSystem &mng, string &ID, long long num){
     Status status;
     long long balance;
     tie(status, balance) = mng.transfer(ID, num);
@@ -288,8 +287,8 @@ void account_transfer ( AccountSystem &mng, char *id, long long num){
     }
 }
 
-void find_account ( AccountSystem &mng, char *id ) {
-  vector<const string*> matches(mng.find(id));
+void find_account ( AccountSystem &mng, string &ID ) {
+  vector<const string*> matches(mng.find(ID));
   if(matches.size() > 0){
     cout << *matches[0];
     for(int i = 1; i < matches.size(); ++i)
@@ -298,8 +297,8 @@ void find_account ( AccountSystem &mng, char *id ) {
   cout << '\n';
 }
 
-void search_account ( AccountSystem &mng, char *id ) {
-  vector<const TransferRecord*> records(mng.search(id));
+void search_account ( AccountSystem &mng, string &ID ) {
+  vector<const TransferRecord*> records(mng.search(ID));
   if(records.size() == 0){
     cout << "no record\n";
   }else{
