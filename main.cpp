@@ -176,7 +176,7 @@ void create_account ( AccountSystem &mng, string &ID, string &pwd ) {
         if(i != 0) cout << ',';
         cout << rmd[i];
       }
-      cout << endl;
+      cout << '\n';
     }else{
       cout << "success\n";
     }

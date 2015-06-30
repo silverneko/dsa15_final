@@ -465,13 +465,14 @@ class AccountSystem{
     void get_recommend(std::vector<std::string> &rmd, std::string &now){
         Trie *ptr = &__IDs;
         int cnt = 0;
-        std::string tmp(now);
-        tmp.pop_back();
-        char obs = now.back();
         for(int i = 0 ; i < now.length() - 1 ; i++){
             ptr = ptr->branches[ toIndex(now[i]) ];
             //tmp += now[i];
         }
+        char obs = now.back();
+        now.pop_back();
+        std::string tmp;
+        swap(tmp, now);
         if(ptr != &__IDs && ptr->endHere == false) rmd.push_back(tmp), cnt++;
         for(int i = 0 ; cnt < 10 && alphabets[i] != obs && i < alphabets.length() ; i++){
             char nc = alphabets[i];
