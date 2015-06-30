@@ -33,6 +33,17 @@ class Trie{
 
     std::tuple<bool, int> exist(const std::string& str, int pos = 0) const
     {
+      /* now using loop version */
+      Trie *now = (Trie*)this;
+      for(int i = 0 ; i < str.length() ; i++){
+        int tmp = toIndex(str[i]);
+        now = now -> branches[tmp];
+        if(now == nullptr)
+            return std::make_tuple(false, -1);
+      }
+      if(now -> endHere) return std::make_tuple(now -> endHere, now -> __hashID);
+      return std::make_tuple(false, -1);
+      /* recursive version
       if(pos >= str.size()){
         if(endHere){
           return std::make_tuple(endHere, __hashID);      // Return if some string end at this node
@@ -46,6 +57,7 @@ class Trie{
         return std::make_tuple(false, -1);
       }
       return branch->exist(str, pos+1);
+      */
     }
 
     // You should check if str already exists or not before inserting or erasing
