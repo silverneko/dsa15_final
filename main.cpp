@@ -54,102 +54,76 @@ void search_account   ( AccountSystem &mng, char *id );
 /* Main */
 
 int main () {
+    ios_base::sync_with_stdio(false);
     char buf[BUFFER_SIZE];  /* char array buffer for inputting command type */
     char id[ID_SIZE], id1[ID_SIZE], id2[ID_SIZE];
     char pwd[PWD_SIZE], pwd1[PWD_SIZE], pwd2[PWD_SIZE];     /* password array */
     long long num;
     AccountSystem acctmng;
 
-    while ( ~scanf("%s", buf) ) {
+    while ( cin >> buf ) {
         /* there is no logout command, so we can simply read-in until EOF */
         if ( buf[0] == 'l' ) {
             /* login : login to a specific account
              * login [ID] [password]
              */
-            scanf("%s %s", id, pwd);
-            #ifdef test
-                printf("Command %-10s : [ID] = %s, [password] = %s\n", "\"login\"", id, pwd);
-            #endif
+            cin >> id >> pwd;
             account_login(acctmng, id, pwd);
 
         } else if ( buf[0] == 'c' ) {
             /* create : create a specific account with password
              * create [ID] [password]
              */
-            scanf("%s %s", id, pwd);
-            #ifdef test
-                printf("Command %-10s : [ID] = %s, [password] = %s\n", "\"create\"", id, pwd);
-            #endif
+            cin >> id >> pwd;
             create_account(acctmng, id, pwd);
 
         } else if ( buf[0] == 'd' && buf[2] == 'l' ) { /* command conflicts with deposit */
             /* delete : delete a specific account with password
              * delete [ID] [password]
              */
-            scanf("%s %s", id, pwd);
-            #ifdef test
-                printf("Command %-10s : [ID] = %s, [password] = %s\n", "\"delete\"", id, pwd);
-            #endif
+            cin >> id >> pwd;
             delete_account(acctmng, id, pwd);
 
         } else if ( buf[0] == 'm' ) {
             /* merge : merge the second account into the first one; after merging, the second one is deleted
              * merge [ID1] [password1] [ID2] [password2]
              */
-            scanf("%s %s %s %s", id1, pwd1, id2, pwd2);
-            #ifdef test
-                printf("Command %-10s : [ID1] = %s, [password1] = %s, [ID2] = %s, [password2] = %s\n", "\"merge\"", id1, pwd1, id2, pwd2);
-            #endif
+            cin >> id1 >> pwd1 >> id2 >> pwd2;
             merge_account(acctmng, id1, pwd1, id2, pwd2);
 
         } else if ( buf[0] == 'd' && buf[2] == 'p' ) { /* command conflicts with delete */
             /* deposit : deposit money into [last-successful-login-ID]
              * deposit [num]
              */
-            scanf("%lld", &num);
-            #ifdef test
-                printf("Command %-10s : [num] = %lld\n", "\"deposit\"", num);
-            #endif
+            cin >> num;
             account_deposit(acctmng, num);
 
         } else if ( buf[0] == 'w' ) {
             /* withdraw : withdraw money from [last-successful-login-ID]
              * withdraw [num]
              */
-            scanf("%lld", &num);
-            #ifdef test
-                printf("Command %-10s : [num] = %lld\n", "\"withdraw\"", num);
-            #endif
+            cin >> num;
             account_withdraw(acctmng, num);
 
         } else if ( buf[0] == 't' ) {
             /* transfer : transfer money from [last-successful-login-ID] to a specific account]
              * transfer [ID] num
              */
-            scanf("%s %lld", id, &num);
-            #ifdef test
-                printf("Command %-10s : [ID] = %s, [num] = %lld\n", "\"transfer\"", id, num);
-            #endif
+            cin >> id >> num;
             account_transfer(acctmng, id, num);
 
         } else if ( buf[0] == 'f' ) {
             /* find : find all existing account IDs that matches [wildcard ID] but is different from [last-successful-login-ID]
              * find [wildcard_ID]
              */
-            scanf("%s", id);
-            #ifdef test
-                printf("Command %-10s : [wildcard_ID] = %s\n", "\"find\"", id);
-            #endif
+            cin >> id;
             find_account(acctmng, id);
 
         } else if ( buf[0] == 's' ) {
             /* search : search all transfer history of [last-successful-login-ID] from/to a specific account
              * search [ID]
              */
-            scanf("%s", id);
-            #ifdef test
-                printf("Command %-10s : [ID] = %s\n", "\"search\"", id);
-            #endif
+            cin >> id;
             search_account(acctmng, id);
 
         } 
@@ -202,7 +176,7 @@ void create_account ( AccountSystem &mng, char *id, char *pwd ) {
         if(i != 0) putchar(',');
         cout << rmd[i];
       }
-      puts("");
+      cout << endl;
     }else{
       cout << "success\n";
     }
