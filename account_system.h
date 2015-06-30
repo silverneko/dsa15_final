@@ -34,11 +34,7 @@ class Trie{
     std::tuple<bool, int> exist(const std::string& str, int pos = 0) const
     {
       if(pos >= str.size()){
-        if(endHere){
-          return std::make_tuple(endHere, __hashID);      // Return if some string end at this node
-        }else{
-          return std::make_tuple(false, -1);
-        }
+        return std::make_tuple(endHere, __hashID);      // Return if some string end at this node
       }
       int i = toIndex(str[pos]);
       auto branch = branches[i];
