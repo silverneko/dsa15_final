@@ -33,6 +33,17 @@ class Trie{
 
     std::tuple<bool, int> exist(const std::string& str, int pos = 0) const
     {
+      /* now using loop version */
+      Trie *now = (Trie*)this;
+      for(int i = 0 ; i < str.length() ; i++){
+        int tmp = toIndex(str[i]);
+        now = now -> branches[tmp];
+        if(now == nullptr)
+            return std::make_tuple(false, -1);
+      }
+      if(now -> endHere) return std::make_tuple(now -> endHere, now -> __hashID);
+      return std::make_tuple(false, -1);
+      /* recursive version
       if(pos >= str.size()){
         return std::make_tuple(endHere, __hashID);      // Return if some string end at this node
       }
@@ -42,11 +53,25 @@ class Trie{
         return std::make_tuple(false, -1);
       }
       return branch->exist(str, pos+1);
+      */
     }
 
     // You should check if str already exists or not before inserting or erasing
     void insert(const std::string& str, int hashID, int pos = 0)
     {
+      /* now using loop version */
+      Trie *now = (Trie*)this;
+      for(int i = 0 ; i < str.length() ; i++){
+        ++now->count;
+        int tmp = toIndex(str[i]);
+        if(now -> branches[tmp] == nullptr){
+          now->branches[tmp] = new Trie();
+        }
+        now = now->branches[tmp];
+      }
+      now -> endHere = true;
+      now -> __hashID = hashID;
+      /*
       if(pos >= str.size()){
         endHere = true;
         __hashID = hashID;
@@ -57,11 +82,21 @@ class Trie{
       if(branches[i] == nullptr){
         branches[i] = new Trie();
       }
-      branches[i]->insert(str, hashID, pos+1);
+      branches[i]->insert(str, hashID, pos+1);*/
     }
 
     void erase(const std::string& str, int pos = 0)
     {
+      /* now using loop version */
+      Trie *now = (Trie*)this;
+      for(int i = 0 ; i < str.length() ; i++){
+        --now->count;
+        int tmp = toIndex(str[i]);
+        now = now->branches[tmp];
+      }
+      now->endHere = false;
+      now->__hashID = -1;
+      /* recursive version
       if(pos >= str.size()){
         endHere = false;
         __hashID = -1;
@@ -70,6 +105,7 @@ class Trie{
       --count;
       int i = toIndex(str[pos]);
       branches[i]->erase(str, pos+1);
+      */
     }
 
 };
