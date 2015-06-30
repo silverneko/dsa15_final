@@ -129,8 +129,8 @@ bool myComp(TransferRecord a, TransferRecord b)
 
 class Account{
   public:
-    const std::string ID;           // This may collide.
-    const std::string hashPWD;
+    std::string ID;           // This may collide.
+    std::string hashPWD;
     long long balance;
     std::vector<TransferRecord> records;
     // std::list<TransferRecord> records;
@@ -191,7 +191,7 @@ class AccountSystem{
     //std::unordered_set<std::string> __IDs;
     Trie __IDs;
     //std::unordered_map<std::string, int> __toHashID;
-    std::vector<std::string> __fromHashID;
+    //std::vector<std::string> __fromHashID;
     std::vector<int> __parent;          // Use disjoint-set to maintain.
     std::vector<Account> accounts;
 
@@ -220,7 +220,8 @@ class AccountSystem{
     // This one doesn't check, either;
     const std::string& fromHashID(int hashID)
     {
-      return __fromHashID[find(hashID)];
+      return accounts[find(hashID)].ID;
+      //return __fromHashID[find(hashID)];
     }
     
     bool exist(const std::string& ID) const
@@ -230,15 +231,18 @@ class AccountSystem{
     }
 
     // All passwords should be hashed before calling functions.
-    Status create(const std::string& ID, const std::string& hashPWD)
+    Status create(std::string& ID, std::string& hashPWD)
     {
       if(exist(ID)) return Fail;
       int hashID = unusedHashID++;
-      accounts.emplace_back(ID, hashPWD, 0);
       IDs.insert(ID);
       __IDs.insert(ID, hashID);
+      // magic~~~~~
+      accounts.emplace_back("", "", 0);
+      swap(accounts.back().ID, ID);
+      swap(accounts.back().hashPWD, hashPWD);
       //__toHashID[ID] = hashID;
-      __fromHashID.push_back(ID);
+      //__fromHashID.push_back(ID);
       __parent.push_back(hashID);
       return Success;
     }
@@ -461,31 +465,35 @@ class AccountSystem{
     void get_recommend(std::vector<std::string> &rmd, std::string &now){
         Trie *ptr = &__IDs;
         int cnt = 0;
-        std::string tmp;
+        std::string tmp(now);
+        tmp.pop_back();
         char obs = now.back();
         for(int i = 0 ; i < now.length() - 1 ; i++){
             ptr = ptr->branches[ toIndex(now[i]) ];
-            tmp += now[i];
+            //tmp += now[i];
         }
         if(ptr != &__IDs && ptr->endHere == false) rmd.push_back(tmp), cnt++;
         for(int i = 0 ; cnt < 10 && alphabets[i] != obs && i < alphabets.length() ; i++){
             char nc = alphabets[i];
             if(ptr->branches[ i ] == nullptr || ptr->branches[ i ]->endHere == false){
-                tmp.push_back(nc);
-                rmd.push_back(tmp);
+                //tmp.push_back(nc);
+                rmd.emplace_back(tmp);
+                rmd.back().push_back(nc);
                 cnt++;
-                tmp.pop_back();
+                //tmp.pop_back();
             }
         }
+        if(cnt >= 10) return ;
         tmp.push_back(obs);
         ptr = ptr->branches[ toIndex(obs) ];
         for(int i = 0 ; cnt < 10 && i < alphabets.length() ; i++){
             char nc = alphabets[i];
             if(ptr->branches[ i ] == nullptr || ptr->branches[ i ]->endHere == false){
-                tmp.push_back(nc);
-                rmd.push_back(tmp);
+                //tmp.push_back(nc);
+                rmd.emplace_back(tmp);
+                rmd.back().push_back(nc);
                 cnt++;
-                tmp.pop_back();
+                //tmp.pop_back();
             }
         }
     }
