@@ -63,6 +63,19 @@ class Trie{
     // You should check if str already exists or not before inserting or erasing
     void insert(const std::string& str, int hashID, int pos = 0)
     {
+      /* now using loop version */
+      Trie *now = (Trie*)this;
+      for(int i = 0 ; i < str.length() ; i++){
+        ++now->count;
+        int tmp = toIndex(str[i]);
+        if(now -> branches[tmp] == nullptr){
+          now->branches[tmp] = new Trie();
+        }
+        now = now->branches[tmp];
+      }
+      now -> endHere = true;
+      now -> __hashID = hashID;
+      /*
       if(pos >= str.size()){
         endHere = true;
         __hashID = hashID;
@@ -73,7 +86,7 @@ class Trie{
       if(branches[i] == nullptr){
         branches[i] = new Trie();
       }
-      branches[i]->insert(str, hashID, pos+1);
+      branches[i]->insert(str, hashID, pos+1);*/
     }
 
     void erase(const std::string& str, int pos = 0)
